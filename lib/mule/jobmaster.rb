@@ -42,13 +42,20 @@ module Mule
       @configurator.events[:after_fork].call
       @job.events[:before_fork].call
       job_content = File.read(@job.file)
-      @job.workers.times do
+      (1..@job.workers).each do |n|
         pid = fork do
+          #redirect_all_output_to_file("testing-#{@job.name}.#{n}.log")
           worker = Worker.new
-          worker.run(job_content)
+          worker.run(job_content, @job, n)
         end
         children << pid
       end
+    end
+
+    def redirect_all_output_to_file(file)
+       log = File.new(file, "w+")
+       STDOUT.reopen log;  STDERR.reopen log
+       STDOUT.sync = true
     end
 
     def reap_children(graceful=false)

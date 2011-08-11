@@ -1,6 +1,6 @@
 module Mule
   class Job
-    attr_accessor :file, :workers
+    attr_accessor :file, :workers, :name
     attr_reader :events
     
     def initialize
@@ -18,5 +18,10 @@ module Mule
     def after_fork(&block)
       @events[:after_fork] = block if block_given?
     end
+
+    def workers
+      @workers.is_a?(Proc) ? @workers.call(self) : @workers
+    end
+
   end
 end
